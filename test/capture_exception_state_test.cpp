@@ -55,41 +55,40 @@ int main()
 		return leaf::remote_handle_exception( err,
 			[]( info<1>, info<3> )
 			{
+				return 1;
+			},
+			[]
+			{
+				return 2;
 			} );
 	};
 	BOOST_TEST_EQ(count, 0);
 	std::exception_ptr ep;
 	try
 	{
-std::cout << __FILE__ << ':' << __LINE__ << '\n';
 		leaf::capture(
 			leaf::make_shared_context(&error_handler),
 			[]
 			{
-std::cout << __FILE__ << ':' << __LINE__ << '\n';
 				throw leaf::exception( std::exception(), info<1>{}, info<3>{} );
 			} );
 		BOOST_TEST(false);
 	}
 	catch(...)
 	{
-std::cout << __FILE__ << ':' << __LINE__ << '\n';
 		ep = std::current_exception();
 	}
 	BOOST_TEST_EQ(count, 2);
-std::cout << __FILE__ << ':' << __LINE__ << '\n';
-	leaf::remote_try_catch(
-		[&]
+	int r = leaf::remote_try_catch(
+		[&]() -> int
 		{
-std::cout << __FILE__ << ':' << __LINE__ << '\n';
 			std::rethrow_exception(ep);
 		},
 		[&]( leaf::error_info const & err )
 		{
-std::cout << __FILE__ << ':' << __LINE__ << '\n';
 			return error_handler(err);
 		} );
-std::cout << __FILE__ << ':' << __LINE__ << '\n';
+	BOOST_TEST_EQ(r, 1);
 	ep = std::exception_ptr();
 	BOOST_TEST_EQ(count, 0);
 	return boost::report_errors();

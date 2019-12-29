@@ -14,7 +14,6 @@
 #include <boost/leaf/capture.hpp>
 #include <boost/leaf/handle_error.hpp>
 #include <boost/leaf/detail/demangle.hpp>
-#include <iostream>
 
 namespace boost { namespace leaf {
 
@@ -349,43 +348,33 @@ namespace boost { namespace leaf {
 			assert(is_active());
 			try
 			{
-std::cout << __FILE__ << ':' << __LINE__ << '\n';
 				return std::forward<TryBlock>(try_block)();
 			}
 			catch( capturing_exception const & cap )
 			{
-std::cout << __FILE__ << ':' << __LINE__ << '\n';
 				try
 				{
 					cap.unload_and_rethrow_original_exception();
 				}
 				catch( std::exception const & ex )
 				{
-std::cout << __FILE__ << ':' << __LINE__ << '\n';
 					deactivate();
-std::cout << __FILE__ << ':' << __LINE__ << '\n';
 					return std::forward<RemoteH>(h)(error_info(exception_info_(&ex), this)).get();
 				}
 				catch(...)
 				{
-std::cout << __FILE__ << ':' << __LINE__ << '\n';
 					deactivate();
-std::cout << __FILE__ << ':' << __LINE__ << '\n';
 					return std::forward<RemoteH>(h)(error_info(exception_info_(0), this)).get();
 				}
 			}
 			catch( std::exception const & ex )
 			{
-std::cout << __FILE__ << ':' << __LINE__ << '\n';
 				deactivate();
-std::cout << __FILE__ << ':' << __LINE__ << '\n';
 				return std::forward<RemoteH>(h)(error_info(exception_info_(&ex), this)).get();
 			}
 			catch(...)
 			{
-std::cout << __FILE__ << ':' << __LINE__ << '\n';
 				deactivate();
-std::cout << __FILE__ << ':' << __LINE__ << '\n';
 				return std::forward<RemoteH>(h)(error_info(exception_info_(0), this)).get();
 			}
 		}
@@ -488,13 +477,10 @@ std::cout << __FILE__ << ':' << __LINE__ << '\n';
 	{
 		using namespace leaf_detail;
 		context_type_from_remote_handler<RemoteH> ctx;
-std::cout << __FILE__ << ':' << __LINE__ << '\n';
 		auto active_context = activate_context(ctx);
-std::cout << __FILE__ << ':' << __LINE__ << '\n';
 		return ctx.remote_try_catch_(
 			[&]
 			{
-std::cout << __FILE__ << ':' << __LINE__ << '\n';
 				return std::forward<TryBlock>(try_block)();
 			},
 			std::forward<RemoteH>(h));

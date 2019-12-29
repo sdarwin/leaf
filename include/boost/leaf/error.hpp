@@ -624,7 +624,7 @@ namespace boost { namespace leaf {
 		context_activator( context_activator const & ) = delete;
 		context_activator & operator=( context_activator const & ) = delete;
 
-#ifndef LEAF_NO_EXCEPTIONS
+#if !defined(LEAF_NO_EXCEPTIONS) && LEAF_STD_UNCAUGHT_EXCEPTIONS
 		int const uncaught_exceptions_;
 #endif
 		Ctx * ctx_;
@@ -632,8 +632,8 @@ namespace boost { namespace leaf {
 	public:
 
 		explicit LEAF_CONSTEXPR LEAF_ALWAYS_INLINE context_activator(Ctx & ctx) noexcept:
-#ifndef LEAF_NO_EXCEPTIONS
-			uncaught_exceptions_(LEAF_UNCAUGHT_EXCEPTIONS()),
+#if !defined(LEAF_NO_EXCEPTIONS) && LEAF_STD_UNCAUGHT_EXCEPTIONS
+			uncaught_exceptions_(std::uncaught_exceptions()),
 #endif
 			ctx_(ctx.is_active() ? 0 : &ctx)
 		{
@@ -642,7 +642,7 @@ namespace boost { namespace leaf {
 		}
 
 		LEAF_CONSTEXPR LEAF_ALWAYS_INLINE context_activator( context_activator && x ) noexcept:
-#ifndef LEAF_NO_EXCEPTIONS
+#if !defined(LEAF_NO_EXCEPTIONS) && LEAF_STD_UNCAUGHT_EXCEPTIONS
 			uncaught_exceptions_(x.uncaught_exceptions_),
 #endif
 			ctx_(x.ctx_)
@@ -657,7 +657,11 @@ namespace boost { namespace leaf {
 			if( ctx_->is_active() )
 				ctx_->deactivate();
 #ifndef LEAF_NO_EXCEPTIONS
-			if( LEAF_UNCAUGHT_EXCEPTIONS() > uncaught_exceptions_ )
+#	if LEAF_STD_UNCAUGHT_EXCEPTIONS
+			if( std::uncaught_exceptions() > uncaught_exceptions_ )
+#	else
+			if( std::uncaught_exception() )
+#	endif
 				ctx_->propagate();
 			else
 				(void) leaf_detail::new_id();

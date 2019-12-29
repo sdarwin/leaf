@@ -119,10 +119,10 @@
 
 #if __cplusplus > 201402L
 #	define LEAF_CONSTEXPR constexpr
-#	define LEAF_UNCAUGHT_EXCEPTIONS std::uncaught_exceptions
+#	define LEAF_STD_UNCAUGHT_EXCEPTIONS 1
 #else
 #	define LEAF_CONSTEXPR
-#	define LEAF_UNCAUGHT_EXCEPTIONS (int)std::uncaught_exception
+#	define LEAF_STD_UNCAUGHT_EXCEPTIONS 0
 #endif
 
 #endif
@@ -1510,7 +1510,7 @@ namespace boost { namespace leaf {
 		context_activator( context_activator const & ) = delete;
 		context_activator & operator=( context_activator const & ) = delete;
 
-#ifndef LEAF_NO_EXCEPTIONS
+#if !defined(LEAF_NO_EXCEPTIONS) && LEAF_STD_UNCAUGHT_EXCEPTIONS
 		int const uncaught_exceptions_;
 #endif
 		Ctx * ctx_;
@@ -1518,8 +1518,8 @@ namespace boost { namespace leaf {
 	public:
 
 		explicit LEAF_CONSTEXPR LEAF_ALWAYS_INLINE context_activator(Ctx & ctx) noexcept:
-#ifndef LEAF_NO_EXCEPTIONS
-			uncaught_exceptions_(LEAF_UNCAUGHT_EXCEPTIONS()),
+#if !defined(LEAF_NO_EXCEPTIONS) && LEAF_STD_UNCAUGHT_EXCEPTIONS
+			uncaught_exceptions_(std::uncaught_exceptions()),
 #endif
 			ctx_(ctx.is_active() ? 0 : &ctx)
 		{
@@ -1528,7 +1528,7 @@ namespace boost { namespace leaf {
 		}
 
 		LEAF_CONSTEXPR LEAF_ALWAYS_INLINE context_activator( context_activator && x ) noexcept:
-#ifndef LEAF_NO_EXCEPTIONS
+#if !defined(LEAF_NO_EXCEPTIONS) && LEAF_STD_UNCAUGHT_EXCEPTIONS
 			uncaught_exceptions_(x.uncaught_exceptions_),
 #endif
 			ctx_(x.ctx_)
@@ -1543,7 +1543,11 @@ namespace boost { namespace leaf {
 			if( ctx_->is_active() )
 				ctx_->deactivate();
 #ifndef LEAF_NO_EXCEPTIONS
-			if( LEAF_UNCAUGHT_EXCEPTIONS() > uncaught_exceptions_ )
+#	if LEAF_STD_UNCAUGHT_EXCEPTIONS
+			if( std::uncaught_exceptions() > uncaught_exceptions_ )
+#	else
+			if( std::uncaught_exception() )
+#	endif
 				ctx_->propagate();
 			else
 				(void) leaf_detail::new_id();
@@ -1734,7 +1738,11 @@ namespace boost { namespace leaf {
 			else
 			{
 #ifndef LEAF_NO_EXCEPTIONS
-				if( LEAF_UNCAUGHT_EXCEPTIONS() )
+#	if LEAF_STD_UNCAUGHT_EXCEPTIONS
+				if( std::uncaught_exceptions() )
+#	else
+				if( std::uncaught_exception() )
+#	endif
 					return leaf_detail::new_id();
 #endif
 				return 0;
@@ -3968,7 +3976,6 @@ namespace boost { namespace leaf {
 #endif
 // <<< #include <boost/leaf/detail/demangle.hpp>
 #line 17 "boost/leaf/handle_exception.hpp"
-#include <iostream>
 
 namespace boost { namespace leaf {
 
@@ -4303,43 +4310,33 @@ namespace boost { namespace leaf {
 			assert(is_active());
 			try
 			{
-std::cout << __FILE__ << ':' << __LINE__ << '\n';
 				return std::forward<TryBlock>(try_block)();
 			}
 			catch( capturing_exception const & cap )
 			{
-std::cout << __FILE__ << ':' << __LINE__ << '\n';
 				try
 				{
 					cap.unload_and_rethrow_original_exception();
 				}
 				catch( std::exception const & ex )
 				{
-std::cout << __FILE__ << ':' << __LINE__ << '\n';
 					deactivate();
-std::cout << __FILE__ << ':' << __LINE__ << '\n';
 					return std::forward<RemoteH>(h)(error_info(exception_info_(&ex), this)).get();
 				}
 				catch(...)
 				{
-std::cout << __FILE__ << ':' << __LINE__ << '\n';
 					deactivate();
-std::cout << __FILE__ << ':' << __LINE__ << '\n';
 					return std::forward<RemoteH>(h)(error_info(exception_info_(0), this)).get();
 				}
 			}
 			catch( std::exception const & ex )
 			{
-std::cout << __FILE__ << ':' << __LINE__ << '\n';
 				deactivate();
-std::cout << __FILE__ << ':' << __LINE__ << '\n';
 				return std::forward<RemoteH>(h)(error_info(exception_info_(&ex), this)).get();
 			}
 			catch(...)
 			{
-std::cout << __FILE__ << ':' << __LINE__ << '\n';
 				deactivate();
-std::cout << __FILE__ << ':' << __LINE__ << '\n';
 				return std::forward<RemoteH>(h)(error_info(exception_info_(0), this)).get();
 			}
 		}
@@ -4442,13 +4439,10 @@ std::cout << __FILE__ << ':' << __LINE__ << '\n';
 	{
 		using namespace leaf_detail;
 		context_type_from_remote_handler<RemoteH> ctx;
-std::cout << __FILE__ << ':' << __LINE__ << '\n';
 		auto active_context = activate_context(ctx);
-std::cout << __FILE__ << ':' << __LINE__ << '\n';
 		return ctx.remote_try_catch_(
 			[&]
 			{
-std::cout << __FILE__ << ':' << __LINE__ << '\n';
 				return std::forward<TryBlock>(try_block)();
 			},
 			std::forward<RemoteH>(h));
