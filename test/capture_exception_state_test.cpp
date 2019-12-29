@@ -52,7 +52,7 @@ int main()
 {
 	try
 	{
-		throw std::exception();
+		throw leaf::exception( std::exception(), info<1>{}, info<3>{} );
 	}
 	catch( std::exception & )
 	{
