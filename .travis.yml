@@ -52,10 +52,6 @@ matrix:
 
   include:
     - os: linux
-      compiler: g++
-      env: TOOLSET=gcc COMPILER=g++ CXXSTD=11
-
-    - os: linux
       env: DOC=1
       script:
         - |-
@@ -69,6 +65,22 @@ matrix:
         keep-history: false
         on:
           branch: master
+
+    - os: linux
+      compiler: /usr/bin/clang++
+      env: TOOLSET=clang COMPILER=/usr/bin/clang++ CXXSTD=11
+      addons:
+        apt:
+          packages:
+            - clang-3.3
+
+    - os: linux
+      compiler: /usr/bin/clang++
+      env: TOOLSET=clang COMPILER=/usr/bin/clang++ CXXSTD=11
+      addons:
+        apt:
+          packages:
+            - clang-3.4
 
     - os: osx
       osx_image: xcode11.2
@@ -217,22 +229,6 @@ matrix:
     - os: linux
       compiler: clang++
       env: TOOLSET=clang COMPILER=clang++ CXXSTD=11
-
-    - os: linux
-      compiler: /usr/bin/clang++
-      env: TOOLSET=clang COMPILER=/usr/bin/clang++ CXXSTD=11
-      addons:
-        apt:
-          packages:
-            - clang-3.3
-
-    - os: linux
-      compiler: /usr/bin/clang++
-      env: TOOLSET=clang COMPILER=/usr/bin/clang++ CXXSTD=11
-      addons:
-        apt:
-          packages:
-            - clang-3.4
 
     - os: linux
       compiler: clang++-3.5

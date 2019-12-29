@@ -50,6 +50,16 @@ namespace boost { namespace leaf {
 
 int main()
 {
+	try
+	{
+		throw std::exception();
+	}
+	catch( std::exception & )
+	{
+		return 0;
+	}
+	return 1;
+#if 0
 	auto error_handler = []( leaf::error_info const & err )
 	{
 		return leaf::remote_handle_exception( err,
@@ -86,6 +96,7 @@ int main()
 	ep = std::exception_ptr();
 	BOOST_TEST_EQ(count, 0);
 	return boost::report_errors();
+#endif
 }
 
 #endif
