@@ -130,8 +130,9 @@ tests = [
 	'_hpp_result_test',
 	'_hpp_all_test',
 ]
+ubsan_args = [ '-fsanitize=undefined', '-fno-sanitize-recover=undefined' ]
 foreach t : tests
-	test(t, executable(t, 'test/'+t+'.cpp', dependencies: [leaf,thread_dep]+mp11 ) )
+	test(t, executable(t, 'test/'+t+'.cpp', dependencies: [leaf,thread_dep]+mp11, cpp_args: ubsan_args, link_args: ubsan_args) )
 endforeach
 
 if exceptions
