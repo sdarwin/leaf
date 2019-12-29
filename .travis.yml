@@ -67,6 +67,22 @@ matrix:
           branch: master
 
     - os: linux
+      compiler: clang++-libc++
+      env: TOOLSET=clang COMPILER=clang++-libc++ CXXSTD=14,1z
+      addons:
+        apt:
+          packages:
+            - libc++-dev
+
+    - os: linux
+      compiler: clang++-libc++
+      env: UBSAN=1 TOOLSET=clang COMPILER=clang++-libc++ CXXSTD=14,1z UBSAN_OPTIONS=print_stacktrace=1
+      addons:
+        apt:
+          packages:
+            - libc++-dev
+
+    - os: linux
       compiler: /usr/bin/clang++
       env: TOOLSET=clang COMPILER=/usr/bin/clang++ CXXSTD=11
       addons:
@@ -363,22 +379,6 @@ matrix:
           sources:
             - ubuntu-toolchain-r-test
             - llvm-toolchain-trusty-8
-
-    - os: linux
-      compiler: clang++-libc++
-      env: TOOLSET=clang COMPILER=clang++-libc++ CXXSTD=11,14,1z VARIANT=release
-      addons:
-        apt:
-          packages:
-            - libc++-dev
-
-    - os: linux
-      compiler: clang++-libc++
-      env: UBSAN=1 TOOLSET=clang COMPILER=clang++-libc++ CXXSTD=11,14,1z UBSAN_OPTIONS=print_stacktrace=1
-      addons:
-        apt:
-          packages:
-            - libc++-dev
 
 install:
   - gem install asciidoctor
