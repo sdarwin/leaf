@@ -19,7 +19,7 @@ struct info
 template <class Ctx>
 leaf::result<int> f( Ctx & ctx )
 {
-	auto active_context = activate_context(ctx, leaf::on_deactivation::do_not_propagate);
+	auto active_context = activate_context(ctx);
 	return leaf::new_error( info<1>{1} );
 }
 
@@ -43,8 +43,10 @@ int main()
 		[&]
 		{
 			auto ctx = leaf::make_context(&handle_error);
-			auto active_context = activate_context(ctx, leaf::on_deactivation::propagate);
-			return f(ctx);
+			auto active_context = activate_context(ctx);
+			auto r = f(ctx);
+			ctx.propagate();
+			return r;
 		},
 		[&]( leaf::error_info const & error )
 		{

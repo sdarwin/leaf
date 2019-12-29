@@ -31,7 +31,7 @@ struct info
 template <class Ctx>
 void f( Ctx & ctx )
 {
-	auto active_context = activate_context(ctx, leaf::on_deactivation::do_not_propagate);
+	auto active_context = activate_context(ctx);
 	throw leaf::exception(std::exception(), info<1>{1});
 }
 

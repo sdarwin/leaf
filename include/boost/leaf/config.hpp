@@ -112,7 +112,7 @@
 #	define LEAF_UNCAUGHT_EXCEPTIONS std::uncaught_exceptions
 #else
 #	define LEAF_CONSTEXPR
-#	define LEAF_UNCAUGHT_EXCEPTIONS std::uncaught_exception
+#	define LEAF_UNCAUGHT_EXCEPTIONS (int)std::uncaught_exception
 #endif
 
 #endif
