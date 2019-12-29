@@ -50,16 +50,6 @@ namespace boost { namespace leaf {
 
 int main()
 {
-	try
-	{
-		throw leaf::exception( std::exception(), info<1>{}, info<3>{} );
-	}
-	catch( std::exception & )
-	{
-		return 0;
-	}
-	return 1;
-#if 0
 	auto error_handler = []( leaf::error_info const & err )
 	{
 		return leaf::remote_handle_exception( err,
@@ -71,32 +61,38 @@ int main()
 	std::exception_ptr ep;
 	try
 	{
+std::cout << __FILE__ << ':' << __LINE__ << '\n';
 		leaf::capture(
 			leaf::make_shared_context(&error_handler),
 			[]
 			{
+std::cout << __FILE__ << ':' << __LINE__ << '\n';
 				throw leaf::exception( std::exception(), info<1>{}, info<3>{} );
 			} );
 		BOOST_TEST(false);
 	}
 	catch(...)
 	{
+std::cout << __FILE__ << ':' << __LINE__ << '\n';
 		ep = std::current_exception();
 	}
 	BOOST_TEST_EQ(count, 2);
+std::cout << __FILE__ << ':' << __LINE__ << '\n';
 	leaf::remote_try_catch(
 		[&]
 		{
+std::cout << __FILE__ << ':' << __LINE__ << '\n';
 			std::rethrow_exception(ep);
 		},
 		[&]( leaf::error_info const & err )
 		{
+std::cout << __FILE__ << ':' << __LINE__ << '\n';
 			return error_handler(err);
 		} );
+std::cout << __FILE__ << ':' << __LINE__ << '\n';
 	ep = std::exception_ptr();
 	BOOST_TEST_EQ(count, 0);
 	return boost::report_errors();
-#endif
 }
 
 #endif
