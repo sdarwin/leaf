@@ -31,7 +31,6 @@ compile _hpp_handle_exception_test.cpp ;
 compile _hpp_preload_test.cpp ;
 compile _hpp_result_test.cpp ;
 
-run capture_exception_state_test.cpp ;
 run accumulate_basic_test.cpp ;
 run accumulate_nested_error_exception_test.cpp ;
 run accumulate_nested_error_result_test.cpp ;
@@ -41,6 +40,7 @@ run accumulate_nested_success_exception_test.cpp ;
 run accumulate_nested_success_result_test.cpp ;
 run capture_exception_async_test.cpp ;
 run capture_exception_result_async_test.cpp ;
+run capture_exception_state_test.cpp ;
 run capture_exception_unload_test.cpp ;
 run capture_result_async_test.cpp ;
 run capture_result_state_test.cpp ;
