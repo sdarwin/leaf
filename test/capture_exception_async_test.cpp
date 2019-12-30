@@ -83,7 +83,7 @@ std::cout << __FILE__ << ':' << __LINE__ << '\n';
 	};
 
 	std::vector<fut_info> fut = launch_tasks<decltype(error_handler)>(
-		1,
+		2,
 		[]( int a, int b, int res )
 		{
 std::cout << __FILE__ << ':' << __LINE__ << '\n';
