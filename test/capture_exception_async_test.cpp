@@ -46,12 +46,15 @@ std::vector<fut_info> launch_tasks( int task_count, F f )
 	std::generate_n( std::inserter(fut,fut.end()), task_count,
 		[=]
 		{
+std::cout << __FILE__ << ':' << __LINE__ << '\n';
 			int const a = rand();
 			int const b = rand();
 			int const res = (rand()%10) - 5;
+std::cout << __FILE__ << ':' << __LINE__ << '\n';
 			return fut_info { a, b, res, std::async( std::launch::async,
 				[=]
 				{
+std::cout << __FILE__ << ':' << __LINE__ << '\n';
 					return leaf::capture(leaf::make_shared_context<H>(), f, a, b, res);
 				} ) };
 		} );
@@ -60,25 +63,30 @@ std::vector<fut_info> launch_tasks( int task_count, F f )
 
 int main()
 {
+std::cout << __FILE__ << ':' << __LINE__ << '\n';
 	auto error_handler = []( leaf::error_info const & err, int a, int b )
 	{
+std::cout << __FILE__ << ':' << __LINE__ << '\n';
 		return leaf::remote_handle_exception( err,
 			[&]( info<1> const & x1, info<2> const & x2,info<4> const & x4 )
 			{
 				BOOST_TEST_EQ(x1.value, a);
 				BOOST_TEST_EQ(x2.value, b);
+std::cout << __FILE__ << ':' << __LINE__ << '\n';
 				return -1;
 			},
 			[]
 			{
+std::cout << __FILE__ << ':' << __LINE__ << '\n';
 				return -2;
 			} );
 	};
 
 	std::vector<fut_info> fut = launch_tasks<decltype(error_handler)>(
-		42,
+		1,
 		[]( int a, int b, int res )
 		{
+std::cout << __FILE__ << ':' << __LINE__ << '\n';
 			if( res>=0 )
 				return res;
 			else
@@ -87,15 +95,20 @@ int main()
 
 	for( auto & f : fut )
 	{
+std::cout << __FILE__ << ':' << __LINE__ << '\n';
 		f.fut.wait();
+std::cout << __FILE__ << ':' << __LINE__ << '\n';
 		int r = leaf::remote_try_catch(
 			[&]
 			{
+std::cout << __FILE__ << ':' << __LINE__ << '\n';
 				auto propagate = leaf::preload( info<4>{} );
+std::cout << __FILE__ << ':' << __LINE__ << '\n';
 				return leaf::future_get(f.fut);
 			},
 			[&]( leaf::error_info const & err )
 			{
+std::cout << __FILE__ << ':' << __LINE__ << '\n';
 				return error_handler(err, f.a, f.b);
 			} );
 		if( f.result>=0 )
