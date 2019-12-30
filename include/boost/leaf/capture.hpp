@@ -9,6 +9,7 @@
 #include <boost/leaf/exception.hpp>
 #include <boost/leaf/preload.hpp>
 #include <memory>
+#include <iostream>
 
 namespace boost { namespace leaf {
 
@@ -106,12 +107,15 @@ namespace boost { namespace leaf {
 		template <class R, class Future>
 		inline decltype(std::declval<Future>().get()) future_get_impl(is_result_tag<R, false>, Future & fut )
 		{
+std::cout << __FILE__ << ':' << __LINE__ << '\n';
 			try
 			{
+std::cout << __FILE__ << ':' << __LINE__ << '\n';
 				return fut.get();
 			}
 			catch( leaf_detail::capturing_exception const & cap )
 			{
+std::cout << __FILE__ << ':' << __LINE__ << '\n';
 				cap.unload_and_rethrow_original_exception();
 			}
 		}
