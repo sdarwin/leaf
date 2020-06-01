@@ -152,6 +152,7 @@ if exceptions
 		'error_log',
 		'error_trace',
 		'exception_to_result',
+		'format_message_eh',
 		'print_file_eh',
 		'print_file_result',
 		'print_half'
