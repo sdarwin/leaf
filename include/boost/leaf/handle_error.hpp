@@ -375,8 +375,11 @@ namespace boost { namespace leaf {
 
 	namespace leaf_detail
 	{
-		template <class SlotsTuple,class T>
-		struct check_one_argument
+		template <class SlotsTuple, class T, bool = std::is_base_of<std::exception,T>::value>
+		struct check_one_argument;
+
+		template <class SlotsTuple, class T>
+		struct check_one_argument<SlotsTuple, T, false>
 		{
 			LEAF_CONSTEXPR static bool check( SlotsTuple const & tup, error_info const & ei ) noexcept
 			{
@@ -384,8 +387,8 @@ namespace boost { namespace leaf {
 			}
 		};
 
-		template <class SlotsTuple,class T>
-		struct check_one_argument<SlotsTuple,T *>
+		template <class SlotsTuple, class T>
+		struct check_one_argument<SlotsTuple, T *, false>
 		{
 			constexpr static bool check( SlotsTuple const &, error_info const & ) noexcept
 			{
@@ -394,7 +397,7 @@ namespace boost { namespace leaf {
 		};
 
 		template <class SlotsTuple>
-		struct check_one_argument<SlotsTuple,error_info>
+		struct check_one_argument<SlotsTuple, error_info, false>
 		{
 			constexpr static bool check( SlotsTuple const &, error_info const & )
 			{
@@ -403,7 +406,7 @@ namespace boost { namespace leaf {
 		};
 
 		template <class SlotsTuple>
-		struct check_one_argument<SlotsTuple,diagnostic_info>
+		struct check_one_argument<SlotsTuple, diagnostic_info, false>
 		{
 			constexpr static bool check( SlotsTuple const &, error_info const & ) noexcept
 			{
@@ -412,7 +415,7 @@ namespace boost { namespace leaf {
 		};
 
 		template <class SlotsTuple>
-		struct check_one_argument<SlotsTuple,verbose_diagnostic_info>
+		struct check_one_argument<SlotsTuple, verbose_diagnostic_info, false>
 		{
 			constexpr static bool check( SlotsTuple const &, error_info const & ) noexcept
 			{
@@ -421,7 +424,7 @@ namespace boost { namespace leaf {
 		};
 
 		template <class SlotsTuple>
-		struct check_one_argument<SlotsTuple,std::error_code>
+		struct check_one_argument<SlotsTuple, std::error_code, false>
 		{
 			constexpr static bool check( SlotsTuple const &, error_info const & ) noexcept
 			{
@@ -430,7 +433,7 @@ namespace boost { namespace leaf {
 		};
 
 		template <class SlotsTuple, class T, typename match_traits<T>::enumerator... V>
-		struct check_one_argument<SlotsTuple,match<T,V...>>
+		struct check_one_argument<SlotsTuple, match<T,V...>, false>
 		{
 			LEAF_CONSTEXPR static bool check( SlotsTuple const & tup, error_info const & ei ) noexcept
 			{
@@ -464,8 +467,11 @@ namespace boost { namespace leaf {
 
 	namespace leaf_detail
 	{
+		template <class T, bool = std::is_base_of<std::exception,T>::value>
+		struct get_one_argument;
+
 		template <class T>
-		struct get_one_argument
+		struct get_one_argument<T, false>
 		{
 			template <class SlotsTuple>
 			LEAF_CONSTEXPR static T const & get( SlotsTuple const & tup, error_info const & ei ) noexcept
@@ -477,7 +483,7 @@ namespace boost { namespace leaf {
 		};
 
 		template <class T>
-		struct get_one_argument<T const *>
+		struct get_one_argument<T const *, false>
 		{
 			template <class SlotsTuple>
 			LEAF_CONSTEXPR static T const * get( SlotsTuple const & tup, error_info const & ei ) noexcept
@@ -487,7 +493,7 @@ namespace boost { namespace leaf {
 		};
 
 		template <>
-		struct get_one_argument<error_info>
+		struct get_one_argument<error_info, false>
 		{
 			template <class SlotsTuple>
 			LEAF_CONSTEXPR static error_info const & get( SlotsTuple const &, error_info const & ei ) noexcept
@@ -499,7 +505,7 @@ namespace boost { namespace leaf {
 #if LEAF_DIAGNOSTICS
 
 		template <>
-		struct get_one_argument<diagnostic_info>
+		struct get_one_argument<diagnostic_info, false>
 		{
 			template <class SlotsTuple>
 			LEAF_CONSTEXPR static diagnostic_info get( SlotsTuple const & tup, error_info const & ei ) noexcept
@@ -509,7 +515,7 @@ namespace boost { namespace leaf {
 		};
 
 		template <>
-		struct get_one_argument<verbose_diagnostic_info>
+		struct get_one_argument<verbose_diagnostic_info, false>
 		{
 			template <class SlotsTuple>
 			LEAF_CONSTEXPR static verbose_diagnostic_info get( SlotsTuple const & tup, error_info const & ei ) noexcept
@@ -521,7 +527,7 @@ namespace boost { namespace leaf {
 #else
 
 		template <>
-		struct get_one_argument<diagnostic_info>
+		struct get_one_argument<diagnostic_info, false>
 		{
 			template <class SlotsTuple>
 			LEAF_CONSTEXPR static diagnostic_info get( SlotsTuple const & tup, error_info const & ei ) noexcept
@@ -531,7 +537,7 @@ namespace boost { namespace leaf {
 		};
 
 		template <>
-		struct get_one_argument<verbose_diagnostic_info>
+		struct get_one_argument<verbose_diagnostic_info, false>
 		{
 			template <class SlotsTuple>
 			LEAF_CONSTEXPR static verbose_diagnostic_info get( SlotsTuple const & tup, error_info const & ei ) noexcept
@@ -543,7 +549,7 @@ namespace boost { namespace leaf {
 #endif
 
 		template <>
-		struct get_one_argument<std::error_code>
+		struct get_one_argument<std::error_code, false>
 		{
 			template <class SlotsTuple>
 			static std::error_code const & get( SlotsTuple const & tup, error_info const & ei ) noexcept
@@ -555,7 +561,7 @@ namespace boost { namespace leaf {
 		};
 
 		template <class T, typename match_traits<T>::enumerator... V>
-		struct get_one_argument<match<T,V...>>
+		struct get_one_argument<match<T,V...>, false>
 		{
 			template <class SlotsTuple>
 			LEAF_CONSTEXPR static match<T,V...> get( SlotsTuple const & tup, error_info const & ei ) noexcept

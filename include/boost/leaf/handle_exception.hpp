@@ -201,7 +201,7 @@ namespace boost { namespace leaf {
 		template <class... Exceptions> struct translate_type_impl<catch_<Exceptions...> const &> { static_assert(sizeof(catch_<Exceptions...>)==0, "Handlers should take catch_<> by value, not as catch_<> const &"); };
 
 		template <class SlotsTuple, class... Ex>
-		struct check_one_argument<SlotsTuple,catch_<Ex...>>
+		struct check_one_argument<SlotsTuple,catch_<Ex...>, false>
 		{
 			LEAF_CONSTEXPR static bool check( SlotsTuple const &, error_info const & ei ) noexcept
 			{
@@ -213,7 +213,7 @@ namespace boost { namespace leaf {
 		};
 
 		template <class... Ex>
-		struct get_one_argument<catch_<Ex...>>
+		struct get_one_argument<catch_<Ex...>, false>
 		{
 			template <class SlotsTuple>
 			LEAF_CONSTEXPR static catch_<Ex...> get( SlotsTuple const &, error_info const & ei ) noexcept
@@ -221,6 +221,59 @@ namespace boost { namespace leaf {
 				std::exception const * ex = ei.exception();
 				BOOST_LEAF_ASSERT(ex!=0);
 				return catch_<Ex...>(ex);
+			}
+		};
+
+		template <class SlotsTuple, class Ex>
+		struct check_one_argument<SlotsTuple, Ex, true>
+		{
+			LEAF_CONSTEXPR static bool check( SlotsTuple const & tup, error_info const & ei ) noexcept
+			{
+				if( ei.exception_caught() )
+					return dynamic_cast<Ex const *>(ei.exception())!=0;
+				else
+					return peek<Ex>(tup, ei.error())!=0;
+			}
+		};
+
+		template <class SlotsTuple, class Ex>
+		struct check_one_argument<SlotsTuple, Ex *, true>
+		{
+			LEAF_CONSTEXPR static bool check( SlotsTuple const &, error_info const & ) noexcept
+			{
+					return true;
+			}
+		};
+
+		template <class Ex>
+		struct get_one_argument<Ex, true>
+		{
+			template <class SlotsTuple>
+			LEAF_CONSTEXPR static Ex const & get( SlotsTuple const & tup, error_info const & ei ) noexcept
+			{
+				Ex const * arg = dynamic_cast<Ex const *>(ei.exception());
+				BOOST_LEAF_ASSERT(arg!=0);
+				return *arg;
+			}
+		};
+
+		template <class Ex>
+		struct get_one_argument<Ex const *, true>
+		{
+			template <class SlotsTuple>
+			LEAF_CONSTEXPR static Ex const * get( SlotsTuple const & tup, error_info const & ei ) noexcept
+			{
+				return dynamic_cast<Ex const>(ei.exception());
+			}
+		};
+
+		template <class Ex>
+		struct get_one_argument<Ex *, true>
+		{
+			template <class SlotsTuple>
+			LEAF_CONSTEXPR static Ex * get( SlotsTuple const & tup, error_info const & ei ) noexcept
+			{
+				return dynamic_cast<Ex>(ei.exception());
 			}
 		};
 	}

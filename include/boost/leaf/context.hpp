@@ -136,7 +136,7 @@ namespace boost { namespace leaf {
 
 		template <class L> using translate_list = typename translate_list_impl<L>::type;
 
-		template <class T> struct does_not_participate_in_context_deduction: std::false_type { };
+		template <class T> struct does_not_participate_in_context_deduction { constexpr static bool value = std::is_base_of<std::exception, T>::value; };
 		template <> struct does_not_participate_in_context_deduction<error_info>: std::true_type { };
 		template <> struct does_not_participate_in_context_deduction<void>: std::true_type { };
 #if !LEAF_DIAGNOSTICS
@@ -290,7 +290,7 @@ namespace boost { namespace leaf {
 			decltype(std::declval<TryBlock>()()) remote_try_catch_( TryBlock &&, RemoteH && );
 		};
 
-		template <class T> struct requires_catch { constexpr static bool value = false; };
+		template <class T> struct requires_catch { constexpr static bool value = std::is_base_of<std::exception, T>::value; };
 		template <class T> struct requires_catch<T const> { constexpr static bool value = requires_catch<T>::value; };
 		template <class T> struct requires_catch<T const &> { constexpr static bool value = requires_catch<T>::value; };
 		template <class... Ex> struct requires_catch<catch_<Ex...>> { constexpr static bool value = true; };
