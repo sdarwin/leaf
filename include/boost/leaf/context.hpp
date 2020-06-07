@@ -111,16 +111,22 @@ namespace boost { namespace leaf {
 		template <class T> struct translate_type_impl<T const> { using type = T; };
 		template <class T> struct translate_type_impl<T const *> { using type = T; };
 		template <class T> struct translate_type_impl<T const &> { using type = T; };
+		template <class T> struct translate_type_impl<T *>; // Error handlers may not take mutable pointers
+		template <class T> struct translate_type_impl<T &>; // Error handlers may not take mutable references
 
-		template <> struct translate_type_impl<diagnostic_info>;
-		template <> struct translate_type_impl<diagnostic_info const>;
-		template <> struct translate_type_impl<diagnostic_info const *>;
+		// Error handlers may take diagnostic_info only by const &
 		template <> struct translate_type_impl<diagnostic_info const &> { using type = e_unexpected_count; };
+		template <> struct translate_type_impl<diagnostic_info const>;
+		template <> struct translate_type_impl<diagnostic_info>;
+		template <> struct translate_type_impl<diagnostic_info const *>;
+		template <> struct translate_type_impl<diagnostic_info *>;
 
-		template <> struct translate_type_impl<verbose_diagnostic_info>;
-		template <> struct translate_type_impl<verbose_diagnostic_info const>;
-		template <> struct translate_type_impl<verbose_diagnostic_info const *>;
+		// Error handlers may take verbose_diagnostic_info only by const &
 		template <> struct translate_type_impl<verbose_diagnostic_info const &> { using type = e_unexpected_info; };
+		template <> struct translate_type_impl<verbose_diagnostic_info const>;
+		template <> struct translate_type_impl<verbose_diagnostic_info>;
+		template <> struct translate_type_impl<verbose_diagnostic_info const *>;
+		template <> struct translate_type_impl<verbose_diagnostic_info *>;
 
 		template <class T>
 		using translate_type = typename translate_type_impl<T>::type;
@@ -136,7 +142,7 @@ namespace boost { namespace leaf {
 
 		template <class L> using translate_list = typename translate_list_impl<L>::type;
 
-		template <class T> struct does_not_participate_in_context_deduction { constexpr static bool value = std::is_base_of<std::exception, T>::value; };
+		template <class T> struct does_not_participate_in_context_deduction { constexpr static bool value = false; };
 		template <> struct does_not_participate_in_context_deduction<error_info>: std::true_type { };
 		template <> struct does_not_participate_in_context_deduction<void>: std::true_type { };
 #if !LEAF_DIAGNOSTICS
@@ -291,9 +297,9 @@ namespace boost { namespace leaf {
 		};
 
 		template <class T> struct requires_catch { constexpr static bool value = std::is_base_of<std::exception, T>::value; };
+		template <class... Ex> struct requires_catch<catch_<Ex...>> { constexpr static bool value = true; };
 		template <class T> struct requires_catch<T const> { constexpr static bool value = requires_catch<T>::value; };
 		template <class T> struct requires_catch<T const &> { constexpr static bool value = requires_catch<T>::value; };
-		template <class... Ex> struct requires_catch<catch_<Ex...>> { constexpr static bool value = true; };
 
 		template <class... E>
 		struct catch_requested;

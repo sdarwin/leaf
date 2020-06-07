@@ -41,7 +41,7 @@ R f()
 
 int main()
 {
-	// void, handle_all (success)
+	// void (success)
 	{
 		int c=0;
 		leaf::try_catch(
@@ -57,7 +57,7 @@ int main()
 		BOOST_TEST_EQ(c, 42);
 	}
 
-	// void, handle_all (failure), match_enum (single enum value)
+	// void (failure), one exception type by const &
 	{
 		int c=0;
 		leaf::try_catch(
@@ -65,83 +65,99 @@ int main()
 			{
 				c = f<int>(error1());
 			},
-			[&c]( leaf::catch_<error2> )
+			[&c]( error2 const & )
 			{
 				BOOST_TEST_EQ(c, 0);
 				c = 1;
+			},
+			[&c]( leaf::catch_<error2> )
+			{
+				BOOST_TEST_EQ(c, 0);
+				c = 2;
+			},
+			[&c]( error1 const &, info<1> const & x, info<2> y )
+			{
+				BOOST_TEST_EQ(x.value, 1);
+				BOOST_TEST_EQ(y.value, 2);
+				BOOST_TEST_EQ(c, 0);
+				c = 3;
+			},
+			[&c]
+			{
+				BOOST_TEST_EQ(c, 0);
+				c = 4;
+			} );
+		BOOST_TEST_EQ(c, 3);
+	}
+
+	// void (failure), multiple exception types by const &
+	{
+		int c=0;
+		leaf::try_catch(
+			[&c]
+			{
+				c = f<int>(error1());
+			},
+			[&c]( error2 const & )
+			{
+				BOOST_TEST_EQ(c, 0);
+				c = 1;
+			},
+			[&c]( leaf::catch_<error2> )
+			{
+				BOOST_TEST_EQ(c, 0);
+				c = 2;
+			},
+			[&c]( error1 const & e1, std::exception const & ex, info<1> const & x, info<2> y )
+			{
+				BOOST_TEST_EQ(&e1, &ex);
+				BOOST_TEST_EQ(x.value, 1);
+				BOOST_TEST_EQ(y.value, 2);
+				BOOST_TEST_EQ(c, 0);
+				c = 3;
+			},
+			[&c]
+			{
+				BOOST_TEST_EQ(c, 0);
+				c = 4;
+			} );
+		BOOST_TEST_EQ(c, 3);
+	}
+
+	// void (failure), catch_<>, one exception type
+	{
+		int c=0;
+		leaf::try_catch(
+			[&c]
+			{
+				c = f<int>(error1());
+			},
+			[&c]( error2 const & )
+			{
+				BOOST_TEST_EQ(c, 0);
+				c = 1;
+			},
+			[&c]( leaf::catch_<error2> )
+			{
+				BOOST_TEST_EQ(c, 0);
+				c = 2;
 			},
 			[&c]( leaf::catch_<error1>, info<1> const & x, info<2> y )
 			{
 				BOOST_TEST_EQ(x.value, 1);
 				BOOST_TEST_EQ(y.value, 2);
 				BOOST_TEST_EQ(c, 0);
-				c = 2;
+				c = 3;
 			},
 			[&c]
 			{
 				BOOST_TEST_EQ(c, 0);
-				c = 3;
+				c = 4;
 			} );
-		BOOST_TEST_EQ(c, 2);
+		BOOST_TEST_EQ(c, 3);
 	}
 
-	// void, handle_all (failure), match_enum (multiple enum values)
-	{
-		int c=0;
-		leaf::try_catch(
-			[&c]
-			{
-				c = f<int>(error1());
-			},
-			[&c]( leaf::catch_<error2> )
-			{
-				BOOST_TEST_EQ(c, 0);
-				c = 1;
-			},
-			[&c]( leaf::catch_<error2,error1>, info<1> const & x, info<2> y )
-			{
-				BOOST_TEST_EQ(x.value, 1);
-				BOOST_TEST_EQ(y.value, 2);
-				BOOST_TEST_EQ(c, 0);
-				c = 2;
-			},
-			[&c]
-			{
-				BOOST_TEST_EQ(c, 0);
-				c = 3;
-			} );
-		BOOST_TEST_EQ(c, 2);
-	}
-
-	// void, handle_all (failure), match_value (single value)
-	{
-		int c=0;
-		leaf::try_catch(
-			[&c]
-			{
-				c = f<int>(error1());
-			},
-			[&c]( leaf::catch_<error2> )
-			{
-				BOOST_TEST_EQ(c, 0);
-				c = 1;
-			},
-			[&c]( leaf::catch_<error1>, info<1> const & x, info<2> y )
-			{
-				BOOST_TEST_EQ(x.value, 1);
-				BOOST_TEST_EQ(y.value, 2);
-				BOOST_TEST_EQ(c, 0);
-				c = 2;
-			},
-			[&c]
-			{
-				BOOST_TEST_EQ(c, 0);
-				c = 3;
-			} );
-		BOOST_TEST_EQ(c, 2);
-	}
-
-	// void, handle_all (failure), match_value (multiple values)
+	// void (failure), catch_<>, multiple exception types
 	{
 		int c=0;
 		leaf::try_catch(
@@ -171,7 +187,7 @@ int main()
 
 	//////////////////////////////////////
 
-	// void, handle_some (failure, initially not matched), match_enum (single enum value)
+	// void (failure, initially not matched), catch<>, single exception type
 	{
 		int c=0;
 		leaf::try_catch(
@@ -204,7 +220,7 @@ int main()
 		BOOST_TEST_EQ(c, 2);
 	}
 
-	// void, handle_some (failure, initially not matched), match_enum (multiple enum values)
+	// void (failure, initially not matched), catch<>, multiple exception types
 	{
 		int c=0;
 		leaf::try_catch(
@@ -237,7 +253,7 @@ int main()
 		BOOST_TEST_EQ(c, 2);
 	}
 
-	// void, handle_some (failure, initially matched), match_enum (single enum value)
+	// void (failure, initially matched), catch_<>, single exception type
 	{
 		int c=0;
 		leaf::try_catch(
@@ -269,7 +285,7 @@ int main()
 		BOOST_TEST_EQ(c, 1);
 	}
 
-	// void, handle_some (failure, initially matched), match_enum (multiple enum values)
+	// void (failure, initially matched), catch_<>, multiple exception types
 	{
 		int c=0;
 		leaf::try_catch(

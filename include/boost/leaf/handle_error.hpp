@@ -24,12 +24,12 @@ namespace boost { namespace leaf {
 		{
 		protected:
 
-			LEAF_CONSTEXPR explicit exception_info_base( std::exception const * ) noexcept;
+			LEAF_CONSTEXPR explicit exception_info_base( std::exception * ) noexcept;
 			~exception_info_base() noexcept;
 
 		public:
 
-			std::exception const * const ex_;
+			std::exception * const ex_;
 
 			virtual void print( std::ostream & os ) const = 0;
 		};
@@ -43,7 +43,7 @@ namespace boost { namespace leaf {
 
 		public:
 
-			LEAF_CONSTEXPR explicit exception_info_( std::exception const * ex ) noexcept;
+			LEAF_CONSTEXPR explicit exception_info_( std::exception * ex ) noexcept;
 		};
 	}
 
@@ -87,7 +87,7 @@ namespace boost { namespace leaf {
 			return xi_!=0;
 		}
 
-		LEAF_CONSTEXPR std::exception const * exception() const noexcept
+		LEAF_CONSTEXPR std::exception * exception() const noexcept
 		{
 			BOOST_LEAF_ASSERT(exception_caught());
 			return xi_->ex_;

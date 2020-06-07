@@ -205,22 +205,7 @@ namespace boost { namespace leaf {
 		{
 			LEAF_CONSTEXPR static bool check( SlotsTuple const &, error_info const & ei ) noexcept
 			{
-				if( ei.exception_caught() )
-					return catch_<Ex...>(ei.exception())();
-				else
-					return false;
-			}
-		};
-
-		template <class... Ex>
-		struct get_one_argument<catch_<Ex...>, false>
-		{
-			template <class SlotsTuple>
-			LEAF_CONSTEXPR static catch_<Ex...> get( SlotsTuple const &, error_info const & ei ) noexcept
-			{
-				std::exception const * ex = ei.exception();
-				BOOST_LEAF_ASSERT(ex!=0);
-				return catch_<Ex...>(ex);
+				return ei.exception_caught() && catch_<Ex...>(ei.exception())();
 			}
 		};
 
@@ -237,11 +222,23 @@ namespace boost { namespace leaf {
 		};
 
 		template <class SlotsTuple, class Ex>
-		struct check_one_argument<SlotsTuple, Ex *, true>
+		struct check_one_argument<SlotsTuple, Ex const *, true>
 		{
 			LEAF_CONSTEXPR static bool check( SlotsTuple const &, error_info const & ) noexcept
 			{
-					return true;
+				return true;
+			}
+		};
+
+		template <class... Ex>
+		struct get_one_argument<catch_<Ex...>, false>
+		{
+			template <class SlotsTuple>
+			LEAF_CONSTEXPR static catch_<Ex...> get( SlotsTuple const &, error_info const & ei ) noexcept
+			{
+				std::exception const * ex = ei.exception();
+				BOOST_LEAF_ASSERT(ex!=0);
+				return catch_<Ex...>(ex);
 			}
 		};
 
@@ -251,9 +248,18 @@ namespace boost { namespace leaf {
 			template <class SlotsTuple>
 			LEAF_CONSTEXPR static Ex const & get( SlotsTuple const & tup, error_info const & ei ) noexcept
 			{
-				Ex const * arg = dynamic_cast<Ex const *>(ei.exception());
-				BOOST_LEAF_ASSERT(arg!=0);
-				return *arg;
+				if( ei.exception_caught() )
+				{
+					Ex const * arg = dynamic_cast<Ex const *>(ei.exception());
+					BOOST_LEAF_ASSERT(arg!=0);
+					return *arg;
+				}
+				else
+				{
+					Ex const * arg = peek<Ex>(tup, ei.error());
+					BOOST_LEAF_ASSERT(arg!=0);
+					return *arg;
+				}
 			}
 		};
 
@@ -263,17 +269,10 @@ namespace boost { namespace leaf {
 			template <class SlotsTuple>
 			LEAF_CONSTEXPR static Ex const * get( SlotsTuple const & tup, error_info const & ei ) noexcept
 			{
-				return dynamic_cast<Ex const>(ei.exception());
-			}
-		};
-
-		template <class Ex>
-		struct get_one_argument<Ex *, true>
-		{
-			template <class SlotsTuple>
-			LEAF_CONSTEXPR static Ex * get( SlotsTuple const & tup, error_info const & ei ) noexcept
-			{
-				return dynamic_cast<Ex>(ei.exception());
+				if( ei.exception_caught() )
+					return dynamic_cast<Ex const *>(ei.exception());
+				else
+					return peek<Ex>(tup, ei.error());
 			}
 		};
 	}
@@ -294,7 +293,7 @@ namespace boost { namespace leaf {
 				os << "\nUnknown exception type (not a std::exception)";
 		}
 
-		LEAF_CONSTEXPR inline exception_info_::exception_info_( std::exception const * ex ) noexcept:
+		LEAF_CONSTEXPR inline exception_info_::exception_info_( std::exception * ex ) noexcept:
 			exception_info_base(ex)
 		{
 		}
@@ -316,7 +315,7 @@ namespace boost { namespace leaf {
 				{
 					cap.unload_and_rethrow_original_exception();
 				}
-				catch( std::exception const & ex )
+				catch( std::exception & ex )
 				{
 					deactivate();
 					return leaf_detail::handle_error_<R>(this->tup(), error_info(exception_info_(&ex)), std::forward<H>(h)...,
@@ -329,7 +328,7 @@ namespace boost { namespace leaf {
 						[]() -> R { throw; } );
 				}
 			}
-			catch( std::exception const & ex )
+			catch( std::exception & ex )
 			{
 				deactivate();
 				return leaf_detail::handle_error_<R>(this->tup(), error_info(exception_info_(&ex)), std::forward<H>(h)...,
@@ -359,7 +358,7 @@ namespace boost { namespace leaf {
 				{
 					cap.unload_and_rethrow_original_exception();
 				}
-				catch( std::exception const & ex )
+				catch( std::exception & ex )
 				{
 					deactivate();
 					return std::forward<RemoteH>(h)(error_info(exception_info_(&ex), this)).get();
@@ -370,7 +369,7 @@ namespace boost { namespace leaf {
 					return std::forward<RemoteH>(h)(error_info(exception_info_(0), this)).get();
 				}
 			}
-			catch( std::exception const & ex )
+			catch( std::exception & ex )
 			{
 				deactivate();
 				return std::forward<RemoteH>(h)(error_info(exception_info_(&ex), this)).get();
@@ -441,7 +440,7 @@ namespace boost { namespace leaf {
 				return current_error();
 		}
 
-		LEAF_CONSTEXPR inline exception_info_base::exception_info_base( std::exception const * ex ) noexcept:
+		LEAF_CONSTEXPR inline exception_info_base::exception_info_base( std::exception * ex ) noexcept:
 			ex_(ex)
 		{
 			BOOST_LEAF_ASSERT(!dynamic_cast<capturing_exception const *>(ex_));
