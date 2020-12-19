@@ -3,7 +3,7 @@ name: documentation
 on:
   push:
     branches:
-      - master
+      - feature/github_ci
 
 jobs:
   publish:
