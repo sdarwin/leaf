@@ -246,6 +246,44 @@ namespace boost { namespace leaf {
 
     namespace leaf_detail
     {
+        template <class=void>
+        struct id_factory
+        {
+            static atomic_unsigned_int counter;
+            static BOOST_LEAF_THREAD_LOCAL unsigned current_id;
+
+            BOOST_LEAF_CONSTEXPR static unsigned generate_next_id() noexcept
+            {
+                auto id = (counter+=4);
+                BOOST_LEAF_ASSERT((id&3)==1);
+                return id;
+            }
+        };
+
+        template <class T>
+        atomic_unsigned_int id_factory<T>::counter(-3);
+
+        template <class T>
+        BOOST_LEAF_THREAD_LOCAL unsigned id_factory<T>::current_id(0);
+
+        inline int current_id() noexcept
+        {
+            auto id = id_factory<>::current_id;
+            BOOST_LEAF_ASSERT(id==0 || (id&3)==1);
+            return id;
+        }
+
+        inline int new_id() noexcept
+        {
+            auto id = id_factory<>::generate_next_id();
+            return id_factory<>::current_id = id;
+        }
+    }
+
+    ////////////////////////////////////////
+
+    namespace leaf_detail
+    {
         template <class E>
         class slot;
 
@@ -373,7 +411,8 @@ namespace boost { namespace leaf {
                 BOOST_LEAF_ASSERT(c>=0);
                 if( c )
                     if( int err_id = impl::key() )
-                        load_unexpected(err_id, std::move(*this).value(err_id));
+                        if( err_id == leaf_detail::current_id() )
+                            load_unexpected(err_id, std::move(*this).value(err_id));
             }
 #endif
         }
@@ -411,44 +450,6 @@ namespace boost { namespace leaf {
                 else
                     (void) std::forward<F>(f)(sl->put(err_id,E()));
             return 0;
-        }
-    }
-
-    ////////////////////////////////////////
-
-    namespace leaf_detail
-    {
-        template <class=void>
-        struct id_factory
-        {
-            static atomic_unsigned_int counter;
-            static BOOST_LEAF_THREAD_LOCAL unsigned current_id;
-
-            BOOST_LEAF_CONSTEXPR static unsigned generate_next_id() noexcept
-            {
-                auto id = (counter+=4);
-                BOOST_LEAF_ASSERT((id&3)==1);
-                return id;
-            }
-        };
-
-        template <class T>
-        atomic_unsigned_int id_factory<T>::counter(-3);
-
-        template <class T>
-        BOOST_LEAF_THREAD_LOCAL unsigned id_factory<T>::current_id(0);
-
-        inline int current_id() noexcept
-        {
-            auto id = id_factory<>::current_id;
-            BOOST_LEAF_ASSERT(id==0 || (id&3)==1);
-            return id;
-        }
-
-        inline int new_id() noexcept
-        {
-            auto id = id_factory<>::generate_next_id();
-            return id_factory<>::current_id = id;
         }
     }
 

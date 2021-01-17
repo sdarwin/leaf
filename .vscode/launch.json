@@ -8,7 +8,7 @@
 			"name": "(lldb) Launch",
 			"type": "cppdbg",
 			"request": "launch",
-			"program": "${workspaceFolder}/bld/debug/continuation_test",
+			"program": "${workspaceFolder}/bld/debug/try_catch_error_id_test",
 			"args": [ ],
 			"cwd": "${workspaceFolder}",
 			"stopAtEntry": false,
