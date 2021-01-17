@@ -74,6 +74,11 @@ struct non_printable_info_non_printable_payload
     non_printable_payload value;
 };
 
+#if BOOST_LEAF_DIAGNOSTICS
+struct info1 { };
+struct info2 { };
+#endif
+
 int main()
 {
     leaf::try_handle_all(
@@ -336,6 +341,67 @@ int main()
             std::cout << s;
         } );
 
+#endif
+
+#if BOOST_LEAF_DIAGNOSTICS
+    leaf::try_catch(
+        []
+        {
+            leaf::try_catch(
+                []
+                {
+                    try
+                    {
+                        throw leaf::exception( info1{} );
+                    }
+                    catch( std::exception & )
+                    {
+                    }
+                    throw leaf::exception( info2{} );
+                },
+                []( info1 const * )
+                {
+                    throw;
+                } );
+        },
+        []( leaf::verbose_diagnostic_info const & di )
+        {
+            std::cout << di;
+            std::stringstream ss; ss << di;
+            std::string s = ss.str();
+            BOOST_TEST(s.find("info1") == s.npos);
+            BOOST_TEST(s.find("info2") != s.npos);
+        } );
+
+    leaf::try_catch(
+        []
+        {
+            leaf::try_catch(
+                []
+                {
+                    try
+                    {
+                        throw leaf::exception( info1{} );
+                    }
+                    catch( std::exception & )
+                    {
+                    }
+                    throw leaf::exception( info2{} );
+                },
+                []( info1 const * )
+                {
+                    throw;
+                } );
+        },
+        []( leaf::verbose_diagnostic_info const & di, info1 const * x )
+        {
+            BOOST_TEST(x==0);
+            std::cout << di;
+            std::stringstream ss; ss << di;
+            std::string s = ss.str();
+            BOOST_TEST(s.find("info1") == s.npos);
+            BOOST_TEST(s.find("info2") != s.npos);
+        } );
 #endif
 
     return boost::report_errors();
